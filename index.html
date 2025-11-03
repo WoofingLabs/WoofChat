@@ -1,315 +1,236 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WoofChat</title>
-    <link rel="icon" type="image/png" href="./images/favicon.png">
-    <style>
-        body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#000 0%,#1a1a1a 100%);color:#fff;margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
-        .container{width:100%;max-width:1000px;height:90vh;background:#f0f2f5;box-shadow:0 0 20px rgba(255,145,0,.5);display:flex;border-radius:10px;overflow:hidden}
-        .sidebar{width:20%;background:#2c2f33;border-right:1px solid #ddd;overflow-y:auto}
-        .chat-area{flex:1;display:flex;flex-direction:column}
-        .header{background:#ff9100;color:#fff;padding:8px 12px;font-size:1.2em;font-weight:bold;display:flex;align-items:center;border-radius:10px;margin:10px}
-        .connect-section{padding:10px}
-        .connect-section button{padding:10px;background:#ff9100;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:bold;font-size:1em;width:100%;text-align:left;display:flex;gap:4px}
-        .connect-section button:hover{background:#e68a00}
-        .connect-section button.loading{opacity:.7;pointer-events:none}
-        .button-group{padding:10px;display:flex;flex-direction:column;gap:10px}
-        .button-group button{padding:10px;background:#ff9100;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:bold;font-size:1em;width:100%;text-align:left}
-        .button-group button:hover{background:#e68a00}
-        .button-group button.disabled{background:#808080;cursor:not-allowed;opacity:.7}
-        .token-buttons{padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-        .token-btn{padding:10px;background:#333;color:#fff;border:2px solid #555;border-radius:10px;text-align:center;font-weight:bold;cursor:pointer;transition:all .2s}
-        .token-btn.active{background:#ff9100;border-color:#ff9100;box-shadow:0 0 15px rgba(255,145,0,.6)}
-        .user-list{list-style:none;padding:0;margin:0}
-        .user-item{padding:10px;display:flex;flex-direction:column;border-bottom:1px solid #3a3f44;cursor:pointer}
-        .user-item:hover{background:#3a3f44}
-        .user-item .group-header{display:flex;align-items:center;width:100%}
-        .user-item .group-name{font-weight:bold;color:#fff;font-size:1em;margin-right:auto}
-        .user-item .status{font-size:.8em;color:#43b581;margin-top:5px;width:100%}
-        .user-item .action-buttons{display:flex;gap:5px;margin-top:5px;width:100%;justify-content:flex-end}
-        .user-item button{padding:5px 10px;background:#ff9100;color:#fff;border:none;border-radius:5px;font-size:.8em;cursor:pointer}
-        .user-item button:hover{background:#e68a00}
-        .chat-header{padding:8px 12px;background:#e5e5ea;border-bottom:1px solid #ddd;display:flex;align-items:center;justify-content:space-between}
-        .chat-header .info{display:flex;align-items:center;gap:8px}
-        .chat-header .name{font-weight:bold;color:#333;background:#d3d3d3;padding:6px 12px;border-radius:20px;font-size:.9em}
-        .chat-header .badge{background:#d3d3d3;padding:6px 12px;border-radius:20px;font-size:.9em;color:#333}
-        .chat-header .refresh-btn{padding:6px 16px;background:#ff9100;color:#fff;border:none;border-radius:20px;cursor:pointer;font-weight:bold;font-size:.9em}
-        .chat-header .refresh-btn:hover{background:#e68a00}
-        .messages{flex:1;overflow-y:auto;padding:10px;background:#e5e5ea}
-        .message{margin:10px 0;display:flex;align-items:flex-start}
-        .message.sent{justify-content:flex-end}
-        .message.received{justify-content:flex-start}
-        .message-content{max-width:60%;padding:10px;border-radius:10px;display:flex;flex-direction:column}
-        .message.sent .message-content{background:#ffe082;color:#333}
-        .message.received .message-content{background:#fff;color:#333;box-shadow:0 1px 2px rgba(0,0,0,.1)}
-        .message:nth-child(even) .message-content{background:#f0f0f0}
-        .message-sender{font-size:.7em;color:#999;margin-bottom:5px;display:flex;align-items:center;gap:4px}
-        .message-text{word-wrap:break-word}
-        .message-timestamp{font-size:.6em;color:#999;align-self:flex-end;margin-top:5px}
-        .input-area{display:flex;padding:8px 12px;background:#e5e5ea;border-top:1px solid #ddd}
-        input[type=text]{flex:1;padding:6px 12px;background:#d3d3d3;color:#333;border:none;border-radius:20px;margin-right:10px;outline:none;font-size:.9em}
-        .input-area .send-btn{padding:6px 16px;background:#ff9100;color:#fff;border:none;border-radius:20px;cursor:pointer;font-weight:bold;font-size:.9em}
-        .input-area .send-btn:hover{background:#e68a00}
-        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center}
-        .modal-content{background:#fff;padding:20px;border-radius:10px;width:90%;max-width:400px;text-align:center;border:2px solid #ff9100;color:#333}
-        .modal-content input{width:100%;margin:10px 0;padding:10px;border:1px solid #ff9100;border-radius:5px}
-        .status{margin-top:10px;font-size:.9em;color:#ff9100}
-        .vip-badge{width:14px;height:14px;background-size:contain;background-repeat:no-repeat;background-position:center;display:inline-block;margin-left:4px;vertical-align:middle}
-        @media(max-width:600px){
-            .container{height:100vh;border-radius:0;box-shadow:none}
-            .sidebar{width:35%}
-            .token-buttons{grid-template-columns:1fr}
-            .message-content{max-width:80%}
-        }
-    </style>
+<meta charset="UTF-8">
+<title>WoofChat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#000;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.container{max-width:1000px;width:100%;height:90vh;background:#111;box-shadow:0 0 30px #ff9100;border-radius:12px;overflow:hidden;display:flex}
+.sidebar{width:23%;background:#1a1a1a;overflow-y:auto;padding:10px}
+.chat-area{flex:1;display:flex;flex-direction:column;background:#222}
+.header{background:#ff9100;color:#fff;padding:10px 15px;font-weight:bold}
+.btn{padding:11px;background:#ff9100;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;width:100%;margin:7px 0}
+.btn:hover{background:#e68a00}
+.btn:disabled{background:#555;cursor:not-allowed}
+.token-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.tbtn{padding:9px;background:#333;color:#fff;border:2px solid #555;border-radius:8px;text-align:center;cursor:pointer;font-size:0.9em}
+.tbtn.active{background:#ff9100;border-color:#ff9100}
+.list{list-style:none}
+.item{padding:12px;border-bottom:1px solid #333;cursor:pointer}
+.item:hover{background:#2a2a2a}
+.item .name{font-weight:bold;font-size:1.05em}
+.item .info{font-size:0.8em;color:#0f0;margin-top:4px}
+.item button{float:right;background:#ff9100;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:0.8em}
+.chat-header{background:#333;padding:10px;display:flex;justify-content:space-between;align-items:center}
+.chat-header .title{font-size:1.1em}
+.messages{flex:1;overflow-y:auto;padding:10px;background:#222}
+.msg{margin:8px 0;display:flex;align-items:flex-start}
+.msg.sent{justify-content:flex-end}
+.msg .bubble{max-width:70%;padding:10px 14px;border-radius:12px}
+.msg.sent .bubble{background:#ffe082;color:#000}
+.msg.received .bubble{background:#333;color:#fff}
+.sender{font-size:0.75em;color:#aaa;margin-bottom:4px;display:flex;gap:4px;align-items:center}
+.time{font-size:0.65em;color:#777;margin-top:4px;text-align:right}
+.input-area{display:flex;padding:8px;background:#333}
+.input-area input{flex:1;padding:10px;background:#444;color:#fff;border:none;border-radius:20px;outline:none}
+.input-area button{margin-left:8px;padding:10px 16px;background:#ff9100;color:#fff;border:none;border-radius:20px;cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal .box{background:#222;padding:20px;border-radius:12px;width:90%;max-width:380px;border:2px solid #ff9100}
+.modal input{width:100%;padding:10px;margin:10px 0;background:#333;color:#fff;border:none;border-radius:8px}
+.modal .status{color:#ff9100;margin-top:10px;text-align:center}
+.vip{width:14px;height:14px}
+@media(max-width:600px){.container{height:100vh;border-radius:0}.sidebar{width:35%}}
+</style>
 </head>
 <body>
 <div class="container">
-    <div class="sidebar">
-        <div class="header">WoofChat</div>
-        <div class="connect-section">
-            <button id="connectWalletButton">Connect Wallet</button>
-            <div id="networkStatus" class="status">Click to connect...</div>
-        </div>
-        <div class="button-group">
-            <button id="createGroupButton">Create Group</button>
-            <button onclick="joinGroup()">Join Group</button>
-            <button id="setNicknameButton">Set Nickname</button>
-        </div>
-        <div class="token-buttons">
-            <div class="token-btn" data-token="0xf6d9cf57e20ba0d33372e8998a9424aa53411e04">GDOG</div>
-            <div class="token-btn" data-token="0x614025d5b75a1e762111d4b845633728774d888a">MIMA</div>
-            <div class="token-btn" data-token="0xe6c3567e5687340f35437e0aa5b351f23d0069d5">GING</div>
-            <div class="token-btn" data-token="0x284938c2a0ae7bdca8563270134850bfb51a9332">GN</div>
-            <div class="token-btn" data-token="0x01ec580a60dbf3c8f3e00805c5489037eff35675">GCAT</div>
-        </div>
-        <ul class="user-list" id="groupList"></ul>
+  <div class="sidebar">
+    <div class="header">WoofChat</div>
+    <button id="connect" class="btn">Connect Wallet</button>
+    <div id="status" style="color:#ff9100;padding:0 10px;font-size:0.9em">点击连接钱包</div>
+    <button id="createBtn" class="btn">Create Group</button>
+    <button id="joinBtn" class="btn">Join Group</button>
+    <button id="nickBtn" class="btn">Set Nickname</button>
+    <div class="token-grid">
+      <div class="tbtn" data-t="0xf6d9cf57e20ba0d33372e8998a9424aa53411e04">GDOG</div>
+      <div class="tbtn" data-t="0x614025d5b75a1e762111d4b845633728774d888a">MIMA</div>
+      <div class="tbtn" data-t="0xe6c3567e5687340f35437e0aa5b351f23d0069d5">GING</div>
+      <div class="tbtn" data-t="0x284938c2a0ae7bdca8563270134850bfb51a9332">GN</div>
+      <div class="tbtn" data-t="0x01ec580a60dbf3c8f3e00805c5489037eff35675">GCAT</div>
     </div>
-    <div class="chat-area">
-        <div class="chat-header">
-            <div class="info">
-                <div class="name" id="chatTitle">Select a Group</div>
-                <div class="badge" id="messageCount">0 messages</div>
-            </div>
-            <button class="refresh-btn" onclick="loadMessages()">Refresh</button>
-        </div>
-        <div class="messages" id="messageList"></div>
-        <div class="input-area">
-            <input type="text" id="messageInput" placeholder="Woof something...">
-            <button class="send-btn" onclick="sendMessage()">Send</button>
-        </div>
+    <ul id="groups" class="list"></ul>
+  </div>
+  <div class="chat-area">
+    <div class="chat-header">
+      <div class="title" id="title">Select a Group</div>
+      <button class="btn" onclick="load()">Refresh</button>
     </div>
+    <div id="msgs" class="messages"></div>
+    <div class="input-area">
+      <input id="input" placeholder="Woof something...">
+      <button onclick="send()">Send</button>
+    </div>
+  </div>
 </div>
 
-<div class="modal" id="createGroupModal">
-    <div class="modal-content">
-        <h2>Create Group</h2>
-        <input type="text" id="groupName" placeholder="Group Name (max 20 chars)">
-        <input type="text" id="joinFee" placeholder="Join Fee (e.g. 10)" value="10">
-        <div class="status">当前代币: <span id="selectedTokenName">未选择</span></div>
-        <button onclick="createGroup()">Create</button>
-        <button onclick="closeModal('createGroupModal')">Cancel</button>
-        <div class="status" id="createStatus"></div>
-    </div>
-</div>
+<div id="createModal" class="modal"><div class="box">
+  <h3>Create Group</h3>
+  <input id="gname" placeholder="Group Name (≤20)">
+  <input id="gfee" placeholder="Join Fee (≥10)" value="10">
+  <div class="status">代币: <span id="tokName">未选</span></div>
+  <button onclick="create()" class="btn">Create</button>
+  <button onclick="closeM('createModal')" class="btn">Cancel</button>
+  <div id="cstat" class="status"></div>
+</div></div>
 
-<div class="modal" id="joinGroupModal">
-    <div class="modal-content">
-        <h2>Join Group</h2>
-        <input type="text" id="groupIdInput" placeholder="Group ID">
-        <div class="status" id="joinFeeInfo"></div>
-        <button onclick="joinGroupConfirm()">Join</button>
-        <button onclick="closeModal('joinGroupModal')">Cancel</button>
-        <div class="status" id="joinStatus"></div>
-    </div>
-</div>
+<div id="joinModal" class="modal"><div class="box">
+  <h3>Join Group</h3>
+  <input id="gid" placeholder="Group ID">
+  <div id="jfee" class="status"></div>
+  <button onclick="join()" class="btn">Join</button>
+  <button onclick="closeM('joinModal')" class="btn">Cancel</button>
+  <div id="jstat" class="status"></div>
+</div></div>
 
-<div class="modal" id="setNicknameModal">
-    <div class="modal-content">
-        <h2>Set Nickname</h2>
-        <input type="text" id="nicknameInput" placeholder="Nickname (max 12 chars)">
-        <button onclick="setNickname()">Save</button>
-        <button onclick="closeModal('setNicknameModal')">Cancel</button>
-        <div class="status" id="nicknameStatus"></div>
-    </div>
-</div>
+<div id="nickModal" class="modal"><div class="box">
+  <h3>Set Nickname</h3>
+  <input id="nick" placeholder="≤12 chars">
+  <button onclick="setNick()" class="btn">Save</button>
+  <button onclick="closeM('nickModal')" class="btn">Cancel</button>
+  <div id="nstat" class="status"></div>
+</div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
 <script>
-const CONTRACT="0xe187C070991013a1Ae1555c32578BD093E1461dc";
-const ABI=[
-    {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},
-    {"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"groupId","type":"uint256"},{"indexed":true,"internalType":"address","name":"member","type":"address"}],"name":"MemberJoined","type":"event"},
-    {"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"groupId","type":"uint256"},{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"string","name":"content","type":"string"}],"name":"MessageSent","type":"event"},
-    {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"string","name":"newNickname","type":"string"},{"indexed":false,"internalType":"bool","name":"isInitialSet","type":"bool"}],"name":"NicknameUpdated","type":"event"},
-    {"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"paymentToken","type":"address"},{"internalType":"uint256","name":"joinFee","type":"uint256"}],"name":"createGroup","outputs":[],"stateMutability":"nonpayable","type":"function"},
-    {"inputs":[{"internalType":"uint256","name":"groupId","type":"uint256"}],"name":"joinGroup","outputs":[],"stateMutability":"nonpayable","type":"function"},
-    {"inputs":[{"internalType":"uint256","name":"groupId","type":"uint256"},{"internalType":"string","name":"content","type":"string"}],"name":"sendMessage","outputs":[],"stateMutability":"nonpayable","type":"function"},
-    {"inputs":[{"internalType":"string","name":"nickname","type":"string"}],"name":"setNickname","outputs":[],"stateMutability":"nonpayable","type":"function"},
-    {"inputs":[{"internalType":"uint256","name":"groupId","type":"uint256"},{"internalType":"uint256","name":"startIndex","type":"uint256"},{"internalType":"uint256","name":"count","type":"uint256"}],"name":"getMessages","outputs":[{"components":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"string","name":"content","type":"string"},{"internalType":"uint256","name":"timestamp","type":"uint256"}],"internalType":"struct WoofChat.Message[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},
-    {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getNickname","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},
-    {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserJoinedGroups","outputs":[{"internalType":"uint256[]","name":"","type":"uint256[]"}],"stateMutability":"view","type":"function"},
-    {"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"groups","outputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"creator","type":"address"},{"internalType":"address","name":"paymentToken","type":"address"},{"internalType":"uint256","name":"joinFee","type":"uint256"},{"internalType":"uint256","name":"memberCount","type":"uint256"}],"stateMutability":"view","type":"function"},
-    {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getVIP","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"}
-];
+const ADDR="0xe187C070991013a1Ae1555c32578BD093E1461dc";
+const ABI=[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"string","name":"name","type":"string"},{"indexed":true,"internalType":"address","name":"creator","type":"address"}],"name":"GroupCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":true,"internalType":"address","name":"member","type":"address"}],"name":"MemberJoined","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"string","name":"content","type":"string"}],"name":"MessageSent","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"string","name":"nick","type":"string"},{"indexed":false,"internalType":"bool","name":"first","type":"bool"}],"name":"NicknameUpdated","type":"event"},{"inputs":[{"internalType":"string","name":"n","type":"string"},{"internalType":"address","name":"t","type":"address"},{"internalType":"uint256","name":"f","type":"uint256"}],"name":"createGroup","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"joinGroup","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"string","name":"c","type":"string"}],"name":"sendMessage","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"n","type":"string"}],"name":"setNickname","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint256","name":"s","type":"uint256"},{"internalType":"uint256","name":"c","type":"uint256"}],"name":"getMessages","outputs":[{"components":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"string","name":"content","type":"string"},{"internalType":"uint256","name":"ts","type":"uint256"}],"internalType":"struct WoofChat.Message[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"a","type":"address"}],"name":"getNickname","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"a","type":"address"}],"name":"getUserJoinedGroups","outputs":[{"internalType":"uint256[]","name":"","type":"uint256[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"a","type":"address"}],"name":"creatorToGroupId","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"groups","outputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"creator","type":"address"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"uint256","name":"cnt","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"a","type":"address"}],"name":"getVIP","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"}];
 const TOKENS={"0xf6d9cf57e20ba0d33372e8998a9424aa53411e04":"GDOG","0x614025d5b75a1e762111d4b845633728774d888a":"MIMA","0xe6c3567e5687340f35437e0aa5b351f23d0069d5":"GING","0x284938c2a0ae7bdca8563270134850bfb51a9332":"GN","0x01ec580a60dbf3c8f3e00805c5489037eff35675":"GCAT"};
-const GATE={chainId:"0x2748",chainName:"GateLayer",nativeCurrency:{name:"GT",symbol:"GT",decimals:18},rpcUrls:["https://gatelayer-mainnet.gatenode.cc/"],blockExplorerUrls:["https://www.gatescan.org/gatelayer"]};
-let provider,signer,contract,account,currentGroupId=null,selectedToken=null;
+const GATE={chainId:"0x2748",rpc:["https://gatelayer-mainnet.gatenode.cc/"]};
 
-async function getVipBadge(addr){
-    try{
-        const vip=await contract.getVIP(addr);
-        return vip?`<img src="./images/${vip}.png" class="vip-badge" alt="VIP${vip}">`:"";
-    }catch{return""}
+let p, s, c, a, gid=null, tok=null;
+
+async function conn(){
+  if(!window.ethereum)return alert("请安装 MetaMask");
+  document.getElementById("connect").disabled=true;
+  p=new ethers.BrowserProvider(window.ethereum);
+  await p.send("eth_requestAccounts",[]);
+  s=await p.getSigner(); a=await s.getAddress();
+  c=new ethers.Contract(ADDR,ABI,s);
+  const n=await p.getNetwork();
+  if(n.chainId!==10088n){
+    try{await ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:GATE.chainId}]});}
+    catch{await ethereum.request({method:"wallet_addEthereumChain",params:{chainId:GATE.chainId,chainName:"GateLayer",rpcUrls:GATE.rpc,nativeCurrency:{name:"GT",symbol:"GT",decimals:18}}});}
+  }
+  const nick=await c.getNickname(a).catch(()=>a.slice(0,6)+"..."+a.slice(-4));
+  const vip=await c.getVIP(a);
+  document.getElementById("connect").innerHTML=`Connected: ${nick}${vip?`<img src="images/${vip}.png" class="vip">`:""}`;
+  document.getElementById("status").innerText="GateLayer 已连接";
+  document.getElementById("connect").disabled=false;
+  list(); setup();
 }
-
-async function connectWallet(){
-    if(!window.ethereum)return alert("请安装MetaMask");
-    const status=document.getElementById('networkStatus');
-    const btn=document.getElementById('connectWalletButton');
-    btn.classList.add('loading');status.innerText="连接中...";
-    provider=new ethers.BrowserProvider(window.ethereum);
-    await provider.send("eth_requestAccounts",[]);
-    signer=await provider.getSigner();
-    account=await signer.getAddress();
-    contract=new ethers.Contract(CONTRACT,ABI,signer);
-    const net=await provider.getNetwork();
-    if(net.chainId!==10088n){
-        try{await ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:GATE.chainId}]});}
-        catch{await ethereum.request({method:"wallet_addEthereumChain",params:[GATE]});}
+async function list(){
+  const joined=await c.getUserJoinedGroups(a);
+  let created=[];
+  try{const id=await c.creatorToGroupId(a); if(id>0)created=[id];}catch{}
+  const ids=[...new Set([...joined,...created])].sort((x,y)=>x-y);
+  const ul=document.getElementById("groups"); ul.innerHTML="";
+  if(ids.length===0){ul.innerHTML="<li style='padding:20px;color:#888;text-align:center'>快去建个群吧！</li>";return;}
+  for(let id of ids){
+    const g=await c.groups(id);
+    const sym=TOKENS[g.token.toLowerCase()]||"GT";
+    const isC=g.creator.toLowerCase()===a.toLowerCase();
+    const li=document.createElement("li"); li.className="item";
+    li.innerHTML=`<div class="name">${g.name} ${isC?"Creator":""}</div>
+      <div class="info">${g.cnt} 人 · ${ethers.formatUnits(g.fee,18)} ${sym}</div>
+      <button onclick="enter(${id})">进入</button>`;
+    ul.appendChild(li);
+  }
+}
+function enter(id){gid=id; c.groups(id).then(g=>document.getElementById("title").innerText=g.name); load();}
+async function load(){
+  if(!gid)return;
+  const msgs=await c.getMessages(gid,0,100);
+  const div=document.getElementById("msgs"); div.innerHTML="";
+  for(let m of msgs){
+    const nick=await c.getNickname(m.sender).catch(()=>m.sender.slice(0,6));
+    const vip=await c.getVIP(m.sender);
+    const d=document.createElement("div"); d.className=`msg ${m.sender.toLowerCase()===a.toLowerCase()?"sent":"received"}`;
+    d.innerHTML=`<div class="bubble">
+      <div class="sender">${nick}${vip?`<img src="images/${vip}.png" class="vip">`:""}</div>
+      <div>${m.content}</div>
+      <div class="time">${new Date(m.ts*1000).toLocaleTimeString()}</div>
+    </div>`;
+    div.appendChild(d);
+  }
+  div.scrollTop=div.scrollHeight;
+}
+async function send(){
+  const txt=document.getElementById("input").value.trim();
+  if(!txt||!gid)return;
+  await c.sendMessage(gid,txt);
+  document.getElementById("input").value="";
+  load();
+}
+async function create(){
+  if(!tok)return alert("请选代币");
+  const name=document.getElementById("gname").value.trim();
+  const fee=document.getElementById("gfee").value;
+  if(!name||name.length>20||fee<10)return alert("检查群名/费用");
+  document.getElementById("cstat").innerText="创建中…";
+  try{
+    const tx=await c.createGroup(name,tok,ethers.parseUnits(fee,18));
+    await tx.wait();
+    document.getElementById("cstat").innerText="成功！";
+    list(); closeM("createModal");
+  }catch(e){document.getElementById("cstat").innerText=e.message.split("(")[0];}
+}
+async function join(){
+  const id=document.getElementById("gid").value.trim();
+  if(!id)return;
+  document.getElementById("jstat").innerText="查询中…";
+  try{
+    const g=await c.groups(id);
+    if(g.creator===ethers.ZeroAddress)throw"群不存在";
+    const sym=TOKENS[g.token.toLowerCase()]||"GT";
+    document.getElementById("jfee").innerText=`费用: ${ethers.formatUnits(g.fee,18)} ${sym}`;
+    if(g.fee>0){
+      document.getElementById("jstat").innerText="授权中…";
+      const erc=new ethers.Contract(g.token,["function approve(address,uint256)"],s);
+      await (await erc.approve(ADDR,g.fee)).wait();
     }
-    const nick=await contract.getNickname(account).catch(()=>"");
-    const vip=await getVipBadge(account);
-    btn.innerHTML=`Connected: ${nick||account.slice(0,6)+"..."+account.slice(-4)}${vip}`;
-    status.innerText="GateLayer 已连接";
-    btn.classList.remove('loading');
-    updateGroupList();updateButtons();setupEvents();
+    document.getElementById("jstat").innerText="加入中…";
+    await (await c.joinGroup(id)).wait();
+    document.getElementById("jstat").innerText="成功！";
+    list(); closeM("joinModal");
+  }catch(e){document.getElementById("jstat").innerText=e.message.split("(")[0];}
 }
-
-document.querySelectorAll('.token-btn').forEach(b=>b.onclick=()=>{
-    selectedToken=b.dataset.token;
-    document.querySelectorAll('.token-btn').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    document.getElementById('selectedTokenName').innerText=TOKENS[selectedToken];
+async function setNick(){
+  const n=document.getElementById("nick").value.trim();
+  if(!n||n.length>12)return alert("1-12字");
+  await c.setNickname(n);
+  document.getElementById("nstat").innerText="设置成功！";
+  closeM("nickModal");
+  conn();
+}
+function setup(){
+  c.on("MessageSent",()=>{if(gid)load();});
+  c.on("MemberJoined",list);
+  c.on("NicknameUpdated",()=>{list();if(gid)load();});
+}
+function closeM(id){document.getElementById(id).classList.remove("show");}
+document.querySelectorAll(".tbtn").forEach(b=>b.onclick=()=>{
+  tok=b.dataset.t;
+  document.querySelectorAll(".tbtn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  document.getElementById("tokName").innerText=TOKENS[tok];
 });
-
-async function createGroup(){
-    if(!selectedToken)return alert("请先选择代币！");
-    const name=document.getElementById('groupName').value.trim();
-    const fee=document.getElementById('joinFee').value;
-    if(!name||!fee)return alert("请填写完整");
-    document.getElementById('createStatus').innerText="创建中...";
-    try{
-        const tx=await contract.createGroup(name,selectedToken,ethers.parseUnits(fee,18));
-        await tx.wait();
-        document.getElementById('createStatus').innerText="创建成功！";
-        updateGroupList();closeModal('createGroupModal');
-    }catch(e){document.getElementById('createStatus').innerText="失败: "+e.message}
-}
-
-async function joinGroupConfirm(){
-    const id=document.getElementById('groupIdInput').value;
-    if(!id)return;
-    const g=await contract.groups(id);
-    const sym=TOKENS[g.paymentToken]||"GT";
-    document.getElementById('joinFeeInfo').innerText=`费用: ${ethers.formatUnits(g.joinFee,18)} ${sym}`;
-    if(g.paymentToken!==ethers.ZeroAddress){
-        const erc20=new ethers.Contract(g.paymentToken,["function approve(address,uint256)"],signer);
-        await (await erc20.approve(CONTRACT,g.joinFee)).wait();
-    }
-    await contract.joinGroup(id);
-    document.getElementById('joinStatus').innerText="加入成功！";
-    updateGroupList();closeModal('joinGroupModal');
-}
-
-async function updateGroupList(){
-    const ids=await contract.getUserJoinedGroups(account);
-    const list=document.getElementById('groupList');list.innerHTML="";
-    for(let id of ids){
-        const g=await contract.groups(id);
-        const sym=TOKENS[g.paymentToken]||"GT";
-        const li=document.createElement('li');li.className='user-item';
-        li.innerHTML=`
-            <div class="group-header"><div class="group-name">${g.name}</div></div>
-            <div class="status">成员: ${g.memberCount} | 费用: ${ethers.formatUnits(g.joinFee,18)} ${sym}</div>
-            <div class="action-buttons"><button onclick="selectGroup(${id})">进入</button></div>
-        `;
-        list.appendChild(li);
-    }
-}
-
-async function selectGroup(id){
-    currentGroupId=id;
-    const g=await contract.groups(id);
-    document.getElementById('chatTitle').innerText=g.name;
-    loadMessages();
-}
-
-async function loadMessages(){
-    if(!currentGroupId)return;
-    const msgs=await contract.getMessages(currentGroupId,0,100);
-    const list=document.getElementById('messageList');list.innerHTML="";
-    for(let m of msgs){
-        const nick=await contract.getNickname(m.sender).catch(()=>m.sender.slice(0,6));
-        const vip=await getVipBadge(m.sender);
-        const div=document.createElement('div');
-        div.className=`message ${m.sender===account?'sent':'received'}`;
-        div.innerHTML=`
-            <div class="message-content">
-                <div class="message-sender">${nick}${vip}</div>
-                <div class="message-text">${m.content}</div>
-                <div class="message-timestamp">${new Date(m.timestamp*1000).toLocaleTimeString()}</div>
-            </div>
-        `;
-        list.appendChild(div);
-    }
-    list.scrollTop=list.scrollHeight;
-    document.getElementById('messageCount').innerText=msgs.length+" messages";
-}
-
-async function sendMessage(){
-    const txt=document.getElementById('messageInput').value.trim();
-    if(!txt||!currentGroupId)return;
-    await contract.sendMessage(currentGroupId,txt);
-    document.getElementById('messageInput').value="";
-    loadMessages();
-}
-
-async function setNickname(){
-    const n=document.getElementById('nicknameInput').value.trim();
-    if(!n)return;
-    await contract.setNickname(n);
-    document.getElementById('nicknameStatus').innerText="昵称已设置！";
-    closeModal('setNicknameModal');
-    updateGroupList();updateButtons();
-    const vip=await getVipBadge(account);
-    document.getElementById('connectWalletButton').innerHTML=`Connected: ${n}${vip}`;
-}
-
-async function updateButtons(){
-    const nick=await contract.getNickname(account).catch(()=>"");
-    if(nick){
-        document.getElementById('setNicknameButton').textContent=nick;
-        document.getElementById('setNicknameButton').classList.add('disabled');
-        document.getElementById('setNicknameButton').onclick=null;
-    }
-}
-
-function setupEvents(){
-    contract.on("MessageSent",()=>{if(currentGroupId)loadMessages();});
-    contract.on("MemberJoined",updateGroupList);
-    contract.on("NicknameUpdated",()=>{updateGroupList();updateButtons();if(currentGroupId)loadMessages();});
-}
-
-function openCreateGroupModal(){document.getElementById('createGroupModal').style.display='flex';}
-function joinGroup(){document.getElementById('joinGroupModal').style.display='flex';}
-function openSetNicknameModal(){document.getElementById('setNicknameModal').style.display='flex';}
-function closeModal(id){document.getElementById(id).style.display='none';}
-
-document.getElementById('connectWalletButton').onclick=connectWallet;
-document.getElementById('createGroupButton').onclick=openCreateGroupModal;
+document.getElementById("connect").onclick=conn;
+document.getElementById("createBtn").onclick=()=>{document.getElementById("createModal").classList.add("show");};
+document.getElementById("joinBtn").onclick=()=>{document.getElementById("joinModal").classList.add("show");};
+document.getElementById("nickBtn").onclick=()=>{document.getElementById("nickModal").classList.add("show");};
 </script>
 </body>
 </html>
