@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WoofChat - GateLayer 终身聊天室</title>
+    <style>
+        :root{--o:#ff9100;--d:#1a1a1a;--g:#2c2f33;--l:#e5e5ea;--s:#ffe082;--r:#fff}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,sans-serif;background:#000;color:#fff;height:100vh;display:flex;justify-content:center;align-items:center}
+        .app{width:100%;max-width:1100px;height:95vh;background:var(--d);border-radius:16px;overflow:hidden;display:flex;box-shadow:0 0 30px rgba(255,145,0,.5)}
+        .side{width:280px;padding:16px;display:flex;flex-direction:column;gap:12px}
+        .hdr{background:var(--o);padding:14px 20px;font-weight:bold;font-size:1.4em;border-radius:12px}
+        .btn{background:var(--o);color:#fff;border:none;padding:12px;border-radius:12px;font-weight:bold;cursor:pointer;width:100%;transition:.2s}
+        .btn:hover{background:#e68a00}.btn:disabled{background:#555;cursor:not-allowed}
+        .grp{background:var(--g);padding:12px;border-radius:10px;cursor:pointer;margin:6px 0}
+        .grp:hover{background:#3a3f44}
+        .chat{flex:1;display:flex;flex-direction:column}
+        .chdr{background:var(--o);padding:12px 20px;font-weight:bold;font-size:1.3em;display:flex;align-items:center;gap:10px}
+        .msgs{flex:1;padding:16px;overflow-y:auto;background:var(--l);color:#333}
+        .msg{max-width:70%;margin:10px 0;padding:10px 16px;border-radius:16px;position:relative}
+        .sent{background:var(--s);align-self:flex-end;border-bottom-right-radius:4px}
+        .recv{background:var(--r);align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+        .sender{font-size:.8em;color:#666;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+        .time{font-size:.7em;color:#999;margin-top:6px;align-self:flex-end}
+        .bar{display:flex;padding:12px;background:var(--l);gap:10px}
+        .bar input{flex:1;padding:12px 16px;border:none;border-radius:20px;background:#ddd;outline:none;font-size:1em}
+        .bar button{padding:0 20px}
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center}
+        .modal.show{display:flex}
+        .box{background:#222;padding:24px;border-radius:16px;width:90%;max-width:420px;border:2px solid var(--o)}
+        .box input,.box select{width:100%;padding:12px;margin:10px 0;border:none;border-radius:8px;background:#333;color:#fff}
+        .badge{display:inline-block;width:18px;height:18px;background:center/contain no-repeat;margin-left:4px}
+        .vip1{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%2348a0ff"/><text x="50" y="65" font-size="60" text-anchor="middle" fill="white">1</text></svg>')}
+        .vip2{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%23ff6b35"/><text x="50" y="65" font-size="60" text-anchor="middle" fill="white">2</text></svg>')}
+        .vip3{background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%23f9c440"/><text x="50" y="65" font-size="60" text-anchor="middle" fill="white">3</text></svg>')}
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="side">
+        <div class="hdr">WoofChat</div>
+        <button class="btn" id="c">Connect Wallet</button>
+        <div id="s" style="font-size:.9em;opacity:.8;padding:8px;"></div>
+        <button class="btn" id="cr">Create Group</button>
+        <button class="btn" onclick="openJoin()">Join Group</button>
+        <button class="btn" onclick="openNick()">Set Nickname</button>
+        <div id="gl"></div>
+    </div>
+    <div class="chat">
+        <div class="chdr"><span id="t">选择群聊</span><span id="cnt" style="margin-left:auto;font-size:.9em;"></span></div>
+        <div class="msgs" id="m"></div>
+        <div class="bar">
+            <input type="text" id="i" placeholder="Woof something...">
+            <button class="btn" id="send">Send</button>
+            <!-- 免 Gas 按钮（已禁用） -->
+            <!-- <button class="btn" id="gasless" style="background:#666;">免 Gas</button> -->
+        </div>
+    </div>
+</div>
+
+<!-- 创建群 -->
+<div class="modal" id="createM">
+    <div class="box">
+        <h3>创建群聊</h3>
+        <input placeholder="群名 (≤20字)" id="gn"><br>
+        <input placeholder="入群费 (GT)" id="gf"><br>
+        <select id="gt">
+            <option value="">选择代币</option>
+            <option value="0x0000000000000000000000000000000000000000">GT (原生)</option>
+        </select><br>
+        <button class="btn" onclick="createG()">创建</button>
+        <button class="btn" onclick="closeM('createM')" style="background:#666;margin-left:8px;">取消</button>
+        <div id="cs" style="margin-top:12px;color:var(--o);"></div>
+    </div>
+</div>
+
+<!-- 加入群 -->
+<div class="modal" id="joinM">
+    <div class="box">
+        <h3>加入群聊</h3>
+        <input placeholder="群 ID" id="ji"><br>
+        <div id="jiInfo"></div><br>
+        <button class="btn" onclick="joinG()">加入</button>
+        <button class="btn" onclick="closeM('joinM')" style="background:#666;margin-left:8px;">取消</button>
+        <div id="js" style="margin-top:12px;color:var(--o);"></div>
+    </div>
+</div>
+
+<!-- 昵称 -->
+<div class="modal" id="nickM">
+    <div class="box">
+        <h3>设置昵称 (仅一次)</h3>
+        <input placeholder="昵称 (≤12字)" id="nn"><br>
+        <button class="btn" onclick="setN()">保存</button>
+        <button class="btn" onclick="closeM('nickM')" style="background:#666;margin-left:8px;">取消</button>
+        <div id="ns" style="margin-top:12px;color:var(--o);"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+<script>
+    const ADDR = "0xe187C070991013a1Ae1555c32578BD093E1461dc";
+    const ABI = [
+        "function groups(uint256) view returns (string name, address creator, address paymentToken, uint256 joinFee, uint256 memberCount)",
+        "function getMessages(uint256,uint256,uint256) view returns (tuple(address sender,string content,uint256 timestamp)[])",
+        "function getUserJoinedGroups(address) view returns (uint256[])",
+        "function getNickname(address) view returns (string)",
+        "function getVIP(address) view returns (uint8)",
+        "function createGroup(string,address,uint256)",
+        "function joinGroup(uint256)",
+        "function sendMessage(uint256,string)",
+        "function setNickname(string)",
+        "event MessageSent(uint256 indexed,address indexed,string)",
+        "event MemberJoined(uint256 indexed,address)",
+        "event GroupCreated(uint256,string,address)",
+        "event NicknameUpdated(address,string,bool)",
+        "event VIPSet(address indexed,uint8)"
+    ];
+    const GATE = {
+        chainId: "0x2748", // 10088
+        chainName: "GateLayer",
+        nativeCurrency: { name: "GT", symbol: "GT", decimals: 18 },
+        rpcUrls: ["https://gatelayer-mainnet.gatenode.cc/"],
+        blockExplorerUrls: ["https://www.gatescan.org/gatelayer"]
+    };
+    let p, s, c, a, g = null;
+
+    async function conn() {
+        if (!window.ethereum) return alert("请安装 MetaMask");
+        p = new ethers.BrowserProvider(window.ethereum);
+        await p.send("eth_requestAccounts", []);
+        s = await p.getSigner(); a = await s.getAddress();
+        c = new ethers.Contract(ADDR, ABI, s);
+
+        const n = await p.getNetwork();
+        if (n.chainId !== 10088n) {
+            try { await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: GATE.chainId }] });
+            } catch { await ethereum.request({ method: "wallet_addEthereumChain", params: [GATE] }); }
+        }
+        document.getElementById("c").innerHTML = a.slice(0,6)+"..."+a.slice(-4);
+        document.getElementById("s").innerText = "GateLayer 已连接";
+        loadG(); loadN(); events();
+    }
+
+    async function loadG() {
+        const ids = await c.getUserJoinedGroups(a);
+        const gl = document.getElementById("gl"); gl.innerHTML="";
+        for (let id of ids) {
+            const grp = await c.groups(id);
+            const div = document.createElement("div"); div.className="grp";
+            div.innerHTML = `<b>${grp.name}</b><br>成员:${grp.memberCount} | 费:${ethers.formatEther(grp.joinFee)} GT`;
+            div.onclick = () => selG(id);
+            gl.appendChild(div);
+        }
+    }
+
+    async function loadN() {
+        const n = await c.getNickname(a) || "";
+        if (n) document.getElementById("c").innerHTML += ` (${n})`;
+    }
+
+    async function selG(id) {
+        g = id; const grp = await c.groups(id);
+        document.getElementById("t").innerText = grp.name;
+        document.getElementById("cnt").innerText = grp.memberCount + " 人";
+        loadM();
+    }
+
+    async function loadM() {
+        if (!g) return;
+        const msgs = await c.getMessages(g, 0, 100);
+        const m = document.getElementById("m"); m.innerHTML="";
+        for (let msg of msgs) {
+            const nick = await c.getNickname(msg.sender) || msg.sender.slice(0,6);
+            const vip = await c.getVIP(msg.sender);
+            const badge = vip ? `<span class="badge vip${vip}"></span>` : "";
+            const div = document.createElement("div"); div.className = `msg ${msg.sender===a?"sent":"recv"}`;
+            div.innerHTML = `<div class="sender">${nick}${badge}</div><div>${msg.content}</div><div class="time">${new Date(msg.timestamp*1000).toLocaleTimeString()}</div>`;
+            m.appendChild(div);
+        }
+        m.scrollTop = m.scrollHeight;
+    }
+
+    async function send() {
+        const txt = document.getElementById("i").value.trim();
+        if (!txt || !g) return;
+        await c.sendMessage(g, txt);
+        document.getElementById("i").value = "";
+        loadM();
+    }
+
+    async function createG() {
+        const name = document.getElementById("gn").value;
+        const fee = document.getElementById("gf").value;
+        if (!name || !fee) return;
+        const tx = await c.createGroup(name, ethers.ZeroAddress, ethers.parseEther(fee));
+        document.getElementById("cs").innerText = "创建中...";
+        await tx.wait();
+        document.getElementById("cs").innerText = "创建成功！";
+        loadG(); closeM("createM");
+    }
+
+    async function joinG() {
+        const id = document.getElementById("ji").value;
+        const grp = await c.groups(id);
+        document.getElementById("jiInfo").innerText = `费用: ${ethers.formatEther(grp.joinFee)} GT`;
+        await c.joinGroup(id);
+        document.getElementById("js").innerText = "加入成功！";
+        loadG(); closeM("joinM");
+    }
+
+    async function setN() {
+        const n = document.getElementById("nn").value;
+        await c.setNickname(n);
+        document.getElementById("ns").innerText = "昵称已设置！";
+        loadN(); closeM("nickM");
+    }
+
+    function openJoin() { document.getElementById("joinM").classList.add("show"); }
+    function openNick() { document.getElementById("nickM").classList.add("show"); }
+    document.getElementById("cr").onclick = () => document.getElementById("createM").classList.add("show");
+    function closeM(id) { document.getElementById(id).classList.remove("show"); }
+
+    function events() {
+        c.on("MessageSent", (id) => { if (g===id) loadM(); });
+        c.on("MemberJoined", loadG);
+        c.on("GroupCreated", loadG);
+        c.on("NicknameUpdated", loadN);
+        c.on("VIPSet", loadM);
+    }
+
+    document.getElementById("c").onclick = conn;
+    document.getElementById("send").onclick = send;
+    document.getElementById("i").onkeydown = e => e.key==="Enter" && send();
+</script>
+</body>
+</html>
