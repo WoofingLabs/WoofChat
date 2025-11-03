@@ -11,6 +11,7 @@
             --dark: #1a1a1a;
             --gray: #2c2f33;
             --light: #f0f2f5;
+            --text: #333;
         }
         * { box-sizing: border-box; margin:0; padding:0; }
         body {
@@ -31,76 +32,84 @@
             overflow: hidden;
             box-shadow: 0 0 30px rgba(255,145,0,.6);
             display: flex;
-            flex-direction: column;
-        }
-        @media (min-width: 768px) {
-            .container { flex-direction: row; height: 92vh; }
         }
         .sidebar {
-            width: 100%;
+            width: 280px;
             background: var(--gray);
             padding: 12px;
             overflow-y: auto;
         }
-        @media (min-width: 768px) { .sidebar { width: 280px; } }
         .header {
             background: var(--orange);
-            padding: 10px 16px;
+            padding: 12px 16px;
             border-radius: 10px;
             font-weight: bold;
+            font-size: 1.3em;
             text-align: center;
             margin-bottom: 12px;
         }
         .btn {
             width: 100%;
-            padding: 12px;
-            margin: 6px 0;
+            padding: 14px;
+            margin: 8px 0;
             border: none;
             border-radius: 10px;
             background: var(--orange);
             color: #fff;
             font-weight: bold;
+            font-size: 1em;
             cursor: pointer;
-            transition: .2s;
         }
         .btn:hover { background: #e68a00; }
         .btn.disabled { background: #666; cursor: not-allowed; }
-        .status { font-size: .9em; color: #ff9100; text-align: center; margin: 8px 0; }
+        .status {
+            font-size: .9em;
+            color: #ff9100;
+            text-align: center;
+            margin: 10px 0;
+            min-height: 20px;
+        }
         .token-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin: 12px 0;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
         }
         .token-btn {
-            padding: 10px;
+            padding: 14px;
             background: #444;
             border: 2px solid transparent;
-            border-radius: 8px;
+            border-radius: 10px;
             text-align: center;
             cursor: pointer;
-            font-size: .9em;
+            font-weight: bold;
+            color: #ccc;
+            font-size: 1em;
+            transition: all .2s;
         }
         .token-btn.active {
             border-color: var(--orange);
             background: #555;
+            color: #fff !important;
+            box-shadow: 0 0 10px rgba(255,145,0,.5);
         }
-        .group-list { list-style: none; margin-top: 12px; }
+        .group-list { list-style: none; margin-top: 15px; }
         .group-item {
             background: #3a3f44;
-            margin: 8px 0;
-            padding: 10px;
-            border-radius: 8px;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 10px;
             cursor: pointer;
+            transition: .2s;
         }
         .group-item:hover { background: #464b50; }
-        .group-name { font-weight: bold; }
-        .group-info { font-size: .8em; color: #aaa; margin: 4px 0; }
-        .group-actions { display: flex; gap: 6px; margin-top: 6px; }
+        .group-name { font-weight: bold; font-size: 1.1em; }
+        .group-info { font-size: .85em; color: #aaa; margin: 6px 0; }
+        .group-actions { display: flex; gap: 8px; margin-top: 8px; }
         .group-actions button {
             flex: 1;
-            padding: 6px;
-            font-size: .8em;
+            padding: 8px;
+            font-size: .9em;
         }
         .chat-area {
             flex: 1;
@@ -109,78 +118,82 @@
             background: #e5e5ea;
         }
         .chat-header {
-            padding: 10px 16px;
+            padding: 12px 16px;
             background: #ddd;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #333;
+            color: var(--text);
+            border-bottom: 1px solid #ccc;
         }
-        .chat-title { font-weight: bold; }
+        .chat-title { font-weight: bold; font-size: 1.2em; }
         .messages {
             flex: 1;
-            padding: 12px;
+            padding: 16px;
             overflow-y: auto;
             background: #e5e5ea;
         }
         .msg {
-            margin: 10px 0;
-            max-width: 75%;
-            padding: 10px 14px;
-            border-radius: 12px;
+            margin: 12px 0;
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 14px;
             position: relative;
         }
         .msg.sent {
             margin-left: auto;
             background: #ffe082;
-            color: #333;
+            color: var(--text);
         }
         .msg.received {
             background: #fff;
-            box-shadow: 0 1px 2px rgba(0,0,0,.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
         }
         .msg-sender {
-            font-size: .75em;
+            font-size: .8em;
             color: #666;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            margin-bottom: 6px;
+            font-weight: bold;
         }
         .msg-time {
-            font-size: .65em;
+            font-size: .7em;
             color: #999;
             text-align: right;
-            margin-top: 4px;
+            margin-top: 6px;
         }
         .input-area {
-            padding: 10px;
+            padding: 12px 16px;
             background: #e5e5ea;
             display: flex;
-            gap: 8px;
+            gap: 12px;
+            border-top: 1px solid #ddd;
         }
         #msgInput {
             flex: 1;
-            padding: 10px 14px;
+            padding: 14px 18px;
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             background: #d3d3d3;
             outline: none;
-            font-size: .95em;
+            font-size: 1em;
+            color: var(--text);
         }
+        #msgInput::placeholder { color: #888; }
         .send-btn {
-            padding: 10px 20px;
+            padding: 14px 28px;
             background: var(--orange);
             color: #fff;
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 1em;
         }
+        .send-btn:hover { background: #e68a00; }
         .modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,.8);
+            background: rgba(0,0,0,.85);
             display: none;
             justify-content: center;
             align-items: center;
@@ -189,28 +202,40 @@
         .modal.show { display: flex; }
         .modal-box {
             background: #fff;
-            color: #333;
-            padding: 20px;
-            border-radius: 12px;
+            color: var(--text);
+            padding: 24px;
+            border-radius: 14px;
             width: 90%;
             max-width: 420px;
             border: 3px solid var(--orange);
         }
-        .modal h2 { margin-bottom: 16px; text-align: center; }
-        input, button {
+        .modal h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.4em;
+            color: var(--orange);
+        }
+        input {
             width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
+            padding: 14px;
+            margin: 10px 0;
             border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 1em;
         }
         .modal button {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
             background: var(--orange);
             color: #fff;
-            border: none;
+            font-weight: bold;
             cursor: pointer;
         }
         .modal button:hover { background: #e68a00; }
+        .modal button:nth-child(2) { background: #666; }
     </style>
 </head>
 <body>
@@ -220,18 +245,16 @@
             <button id="connectBtn" class="btn">Connect Wallet</button>
             <div id="status" class="status">点击连接钱包</div>
 
-            <button id="createBtn" class="btn" onclick="openModal('create')">Create Group</button>
-            <button id="joinBtn" class="btn" onclick="openModal('join')">Join Group</button>
-            <button id="nickBtn" class="btn" onclick="openModal('nick')">Set Nickname</button>
+            <button id="createBtn" class="btn">Create Group</button>
+            <button id="joinBtn" class="btn">Join Group</button>
+            <button id="nickBtn" class="btn">Set Nickname</button>
 
             <ul id="groupList" class="group-list"></ul>
         </div>
 
         <div class="chat-area">
             <div class="chat-header">
-                <div>
-                    <div id="chatTitle" class="chat-title">选择一个群聊</div>
-                </div>
+                <div id="chatTitle" class="chat-title">选择一个群聊</div>
                 <button class="send-btn" onclick="loadMsgs()">Refresh</button>
             </div>
             <div id="msgList" class="messages"></div>
@@ -246,9 +269,9 @@
     <div id="createModal" class="modal">
         <div class="modal-box">
             <h2>Create Group</h2>
-            <input type="text" id="gName" placeholder="群名称 (≤20字)">
+            <input type="text" id="gName" placeholder="群名称（最多20个字）">
             <div class="token-grid" id="tokenGrid"></div>
-            <input type="text" id="gFee" placeholder="入群费 (最小 10)">
+            <input type="text" id="gFee" placeholder="入群费（最小10）">
             <button onclick="createGroup()">Create</button>
             <button onclick="closeModal()">Cancel</button>
             <div id="cStatus" class="status"></div>
@@ -258,7 +281,7 @@
     <div id="joinModal" class="modal">
         <div class="modal-box">
             <h2>Join Group</h2>
-            <input type="text" id="gId" placeholder="群 ID">
+            <input type="text" id="gId" placeholder="输入群ID">
             <div id="jFee" class="status"></div>
             <button onclick="joinGroup()">Join</button>
             <button onclick="closeModal()">Cancel</button>
@@ -269,7 +292,7 @@
     <div id="nickModal" class="modal">
         <div class="modal-box">
             <h2>Set Nickname</h2>
-            <input type="text" id="nick" placeholder="昵称 (≤12字)">
+            <input type="text" id="nick" placeholder="昵称（最多12个字）">
             <button onclick="setNick()">Save</button>
             <button onclick="closeModal()">Cancel</button>
             <div id="nStatus" class="status"></div>
@@ -313,13 +336,12 @@
                 }
                 contract = new web3.eth.Contract(ABI, CONTRACT);
                 const nick = await contract.methods.getNickname(account).call() || account.slice(0,6)+"..."+account.slice(-4);
-                btn.textContent = `已连接: ${nick}`;
+                btn.innerHTML = `已连接: ${nick}`;
                 document.getElementById("status").textContent = "GateLayer 网络已就绪";
                 initTokens();
                 refreshAll();
             } catch (e) { alert(e.message); }
             btn.disabled = false;
-            btn.textContent = "重新连接";
         }
 
         function initTokens() {
@@ -330,7 +352,7 @@
                 div.className = "token-btn";
                 div.textContent = sym;
                 div.onclick = () => {
-                    document.querySelectorAll(".token-btn").forEach(b=>b.classList.remove("active"));
+                    document.querySelectorAll(".token-btn").forEach(b => b.classList.remove("active"));
                     div.classList.add("active");
                     selectedToken = addr;
                 };
@@ -340,30 +362,34 @@
 
         function openModal(type) {
             document.getElementById(type+"Modal").classList.add("show");
-            if (type==="create") initTokens();
+            if (type === "create") { selectedToken = ""; initTokens(); }
         }
-        function closeModal() { document.querySelectorAll(".modal").forEach(m=>m.classList.remove("show")); }
+        function closeModal() {
+            document.querySelectorAll(".modal").forEach(m => m.classList.remove("show"));
+            document.querySelectorAll(".status").forEach(s => s.textContent = "");
+        }
 
         async function createGroup() {
-            if (!selectedToken) return alert("请选择代币");
+            if (!selectedToken) return alert("请先选择支付代币");
             const name = document.getElementById("gName").value.trim();
-            const fee = document.getElementById("gFee").value;
-            if (!name || !fee || fee < 10) return alert("请正确填写");
+            const fee = document.getElementById("gFee").value.trim();
+            if (!name || name.length > 20) return alert("群名1-20字");
+            if (!fee || fee < 10) return alert("入群费 ≥ 10");
             try {
                 await contract.methods.createGroup(name, selectedToken, web3.utils.toWei(fee, "ether"))
                     .send({ from: account });
-                alert("创建成功！");
+                alert("群创建成功！");
                 closeModal();
                 refreshAll();
-            } catch (e) { document.getElementById("cStatus").textContent = e.message; }
+            } catch (e) { document.getElementById("cStatus").textContent = "失败: " + e.message; }
         }
 
         async function joinGroup() {
-            const id = document.getElementById("gId").value;
-            if (!id) return;
+            const id = document.getElementById("gId").value.trim();
+            if (!id) return alert("请输入群ID");
             try {
                 const g = await contract.methods.groups(id).call();
-                const sym = TOKENS[g.paymentToken] || "???";
+                const sym = TOKENS[g.paymentToken] || "未知代币";
                 document.getElementById("jFee").textContent = `费用: ${web3.utils.fromWei(g.joinFee,"ether")} ${sym}`;
                 const erc20 = new web3.eth.Contract([{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}], g.paymentToken);
                 await erc20.methods.approve(CONTRACT, g.joinFee).send({from: account});
@@ -371,25 +397,26 @@
                 alert("加入成功！");
                 closeModal();
                 refreshAll();
-            } catch (e) { document.getElementById("jStatus").textContent = e.message; }
+            } catch (e) { document.getElementById("jStatus").textContent = "失败: " + e.message; }
         }
 
         async function setNick() {
             const n = document.getElementById("nick").value.trim();
-            if (!n || n.length > 12) return alert("昵称 1-12 字");
+            if (!n || n.length > 12) return alert("昵称1-12字");
             try {
                 await contract.methods.setNickname(n).send({from: account});
-                alert("昵称设置成功");
+                alert("昵称已设置");
                 closeModal();
                 refreshAll();
-            } catch (e) { document.getElementById("nStatus").textContent = e.message; }
+            } catch (e) { document.getElementById("nStatus").textContent = "失败: " + e.message; }
         }
 
         async function leave(gid) {
-            if (!confirm("确定退出？")) return;
+            if (!confirm("确定退出此群？")) return;
             await contract.methods.leaveGroup(gid).send({from: account});
             alert("已退出");
             refreshAll();
+            if (currentGid === gid) { currentGid = null; document.getElementById("msgList").innerHTML = ""; }
         }
 
         let currentGid = null;
@@ -405,58 +432,75 @@
             try {
                 const msgs = await contract.methods.getMessages(currentGid, 0, 100).call();
                 const list = document.getElementById("msgList");
-                list.innerHTML = msgs.length ? "" : "<div style='text-align:center;color:#999'>暂无消息</div>";
+                list.innerHTML = "";
+                if (!msgs.length) {
+                    list.innerHTML = "<div style='text-align:center;color:#999;padding:40px'>暂无消息，抢先 woof 一条！</div>";
+                    return;
+                }
                 for (const m of msgs) {
                     const nick = await contract.methods.getNickname(m.sender).call() || m.sender.slice(0,6)+"...";
                     const isMe = m.sender.toLowerCase() === account.toLowerCase();
                     const div = document.createElement("div");
-                    div.className = "msg " + (isMe?"sent":"received");
+                    div.className = "msg " + (isMe ? "sent" : "received");
                     div.innerHTML = `
                         <div class="msg-sender">${nick}</div>
-                        <div>${m.content}</div>
+                        <div>${m.content.replace(/</g, "&lt;")}</div>
                         <div class="msg-time">${new Date(m.timestamp*1000).toLocaleTimeString()}</div>
                     `;
                     list.appendChild(div);
                 }
                 list.scrollTop = list.scrollHeight;
-            } catch (e) { alert(e.message); }
+            } catch (e) { alert("加载消息失败: " + e.message); }
         }
 
         async function sendMsg() {
             if (!currentGid) return alert("请先选择群聊");
             const txt = document.getElementById("msgInput");
-            if (!txt.value.trim()) return;
-            await contract.methods.sendMessage(currentGid, txt.value).send({from: account});
-            txt.value = "";
-            loadMsgs();
+            const content = txt.value.trim();
+            if (!content) return;
+            try {
+                await contract.methods.sendMessage(currentGid, content).send({from: account});
+                txt.value = "";
+                loadMsgs();
+            } catch (e) { alert("发送失败: " + e.message); }
         }
 
         async function refreshAll() {
-            if (!account) return;
-            const ids = await contract.methods.getUserJoinedGroups(account).call();
-            const list = document.getElementById("groupList");
-            list.innerHTML = "";
-            for (const id of ids) {
-                const g = await contract.methods.groups(id).call();
-                const sym = TOKENS[g.paymentToken] || "???";
-                const li = document.createElement("li");
-                li.className = "group-item";
-                li.innerHTML = `
-                    <div class="group-name">${g.name}</div>
-                    <div class="group-info">成员 ${g.memberCount} · 费用 ${web3.utils.fromWei(g.joinFee,"ether")} ${sym}</div>
-                    <div class="group-actions">
-                        <button onclick="enter(${id})">进入</button>
-                        <button onclick="leave(${id})">退出</button>
-                    </div>
-                `;
-                list.appendChild(li);
-            }
-            const hasG = await contract.methods.getGroupIdByCreator(account).call();
-            document.getElementById("createBtn").textContent = hasG.hasGroup ? `我的群 ID: ${hasG.groupId}` : "Create Group";
-            document.getElementById("createBtn").disabled = hasG.hasGroup;
-            const nick = await contract.methods.getNickname(account).call();
-            document.getElementById("nickBtn").textContent = nick ? nick : "Set Nickname";
-            document.getElementById("nickBtn").disabled = !!nick;
+            if (!account || !contract) return;
+            try {
+                const ids = await contract.methods.getUserJoinedGroups(account).call();
+                const list = document.getElementById("groupList");
+                list.innerHTML = "";
+                for (const id of ids) {
+                    const g = await contract.methods.groups(id).call();
+                    const sym = TOKENS[g.paymentToken] || "???";
+                    const li = document.createElement("li");
+                    li.className = "group-item";
+                    li.innerHTML = `
+                        <div class="group-name">${g.name}</div>
+                        <div class="group-info">成员 ${g.memberCount} · 费用 ${web3.utils.fromWei(g.joinFee,"ether")} ${sym}</div>
+                        <div class="group-actions">
+                            <button onclick="enter(${id})">进入聊天</button>
+                            <button onclick="leave(${id})">退出</button>
+                        </div>
+                    `;
+                    list.appendChild(li);
+                }
+
+                const hasG = await contract.methods.getGroupIdByCreator(account).call();
+                const createBtn = document.getElementById("createBtn");
+                createBtn.textContent = hasG.hasGroup ? `我的群 ID: ${hasG.groupId}` : "Create Group";
+                createBtn.disabled = hasG.hasGroup;
+                createBtn.onclick = hasG.hasGroup ? null : () => openModal("create");
+
+                const nick = await contract.methods.getNickname(account).call();
+                const nickBtn = document.getElementById("nickBtn");
+                nickBtn.textContent = nick ? nick : "Set Nickname";
+                nickBtn.disabled = !!nick;
+                nickBtn.onclick = nick ? null : () => openModal("nick");
+
+                document.getElementById("joinBtn").onclick = () => openModal("join");
+            } catch (e) { console.error(e); }
         }
 
         document.getElementById("connectBtn").onclick = connect;
