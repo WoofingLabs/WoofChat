@@ -3,30 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WoofChat - GateLayer 终身聊天室</title>
+    <title>WoofChat - GateLayer</title>
     <style>
         :root{--o:#ff9100;--d:#1a1a1a;--g:#2c2f33;--l:#e5e5ea;--s:#ffe082;--r:#fff}
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:system-ui,sans-serif;background:#000;color:#fff;height:100vh;display:flex;justify-content:center;align-items:center}
-        .app{width:100%;max-width:1100px;height:95vh;background:var(--d);border-radius:16px;overflow:hidden;display:flex;box-shadow:0 0 30px rgba(255,145,0,.5)}
-        .side{width:280px;padding:16px;display:flex;flex-direction:column;gap:12px}
-        .hdr{background:var(--o);padding:14px 20px;font-weight:bold;font-size:1.4em;border-radius:12px}
-        .btn{background:var(--o);color:#fff;border:none;padding:12px;border-radius:12px;font-weight:bold;cursor:pointer;width:100%;transition:.2s}
+        body{font-family:system-ui,sans-serif;background:#000;color:#fff;min-height:100vh;display:flex;flex-direction:column}
+        .app{width:100%;max-width:1100px;margin:auto;background:var(--d);border-radius:16px;overflow:hidden;box-shadow:0 0 30px rgba(255,145,0,.5);display:flex;flex-direction:column}
+        @media(min-width:768px){.app{flex-direction:row;height:95vh}}
+        .side{width:100%;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--g)}
+        @media(min-width:768px){.side{width:280px}}
+        .hdr{background:var(--o);padding:14px 20px;font-weight:bold;font-size:1.4em;border-radius:12px;text-align:center}
+        .btn{background:var(--o);color:#fff;border:none;padding:12px;border-radius:12px;font-weight:bold;cursor:pointer;transition:.2s;font-size:1em}
         .btn:hover{background:#e68a00}.btn:disabled{background:#555;cursor:not-allowed}
+        .tokens{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+        .token-btn{flex:1;min-width:60px;font-size:0.9em;padding:10px 6px}
         .grp{background:var(--g);padding:12px;border-radius:10px;cursor:pointer;margin:6px 0}
         .grp:hover{background:#3a3f44}
         .chat{flex:1;display:flex;flex-direction:column}
         .chdr{background:var(--o);padding:12px 20px;font-weight:bold;font-size:1.3em;display:flex;align-items:center;gap:10px}
         .msgs{flex:1;padding:16px;overflow-y:auto;background:var(--l);color:#333}
-        .msg{max-width:70%;margin:10px 0;padding:10px 16px;border-radius:16px;position:relative}
+        .msg{max-width:80%;margin:10px 0;padding:10px 16px;border-radius:16px;position:relative;word-break:break-all}
         .sent{background:var(--s);align-self:flex-end;border-bottom-right-radius:4px}
         .recv{background:var(--r);align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.1)}
         .sender{font-size:.8em;color:#666;margin-bottom:4px;display:flex;align-items:center;gap:6px}
         .time{font-size:.7em;color:#999;margin-top:6px;align-self:flex-end}
-        .bar{display:flex;padding:12px;background:var(--l);gap:10px}
+        .bar{display:flex;padding:12px;background:var(--l);gap:8px;position:sticky;bottom:0}
         .bar input{flex:1;padding:12px 16px;border:none;border-radius:20px;background:#ddd;outline:none;font-size:1em}
-        .bar button{padding:0 20px}
-        .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center}
+        .bar button{padding:0 20px;font-size:1em}
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:99}
         .modal.show{display:flex}
         .box{background:#222;padding:24px;border-radius:16px;width:90%;max-width:420px;border:2px solid var(--o)}
         .box input,.box select{width:100%;padding:12px;margin:10px 0;border:none;border-radius:8px;background:#333;color:#fff}
@@ -40,11 +44,18 @@
 <div class="app">
     <div class="side">
         <div class="hdr">WoofChat</div>
-        <button class="btn" id="c">Connect Wallet</button>
+        <button class="btn" id="c">Connect</button>
         <div id="s" style="font-size:.9em;opacity:.8;padding:8px;"></div>
         <button class="btn" id="cr">Create Group</button>
         <button class="btn" onclick="openJoin()">Join Group</button>
         <button class="btn" onclick="openNick()">Set Nickname</button>
+        <div class="tokens">
+            <button class="btn token-btn" data-token="0xf6d9cf57e20ba0d33372e8998a9424aa53411e04">GDOG</button>
+            <button class="btn token-btn" data-token="0x614025d5b75a1e762111d4b845633728774d888a">MIMA</button>
+            <button class="btn token-btn" data-token="0xe6c3567e5687340f35437e0aa5b351f23d0069d5">GING</button>
+            <button class="btn token-btn" data-token="0x284938c2a0ae7bdca8563270134850bfb51a9332">GN</button>
+            <button class="btn token-btn" data-token="0x01ec580a60dbf3c8f3e00805c5489037eff35675">GCAT</button>
+        </div>
         <div id="gl"></div>
     </div>
     <div class="chat">
@@ -53,8 +64,6 @@
         <div class="bar">
             <input type="text" id="i" placeholder="Woof something...">
             <button class="btn" id="send">Send</button>
-            <!-- 免 Gas 按钮（已禁用） -->
-            <!-- <button class="btn" id="gasless" style="background:#666;">免 Gas</button> -->
         </div>
     </div>
 </div>
@@ -64,11 +73,8 @@
     <div class="box">
         <h3>创建群聊</h3>
         <input placeholder="群名 (≤20字)" id="gn"><br>
-        <input placeholder="入群费 (GT)" id="gf"><br>
-        <select id="gt">
-            <option value="">选择代币</option>
-            <option value="0x0000000000000000000000000000000000000000">GT (原生)</option>
-        </select><br>
+        <input placeholder="入群费 (单位: token)" id="gf" value="10"><br>
+        <div style="color:#ff9100;margin:10px 0">当前代币: <span id="curToken">未选</span></div>
         <button class="btn" onclick="createG()">创建</button>
         <button class="btn" onclick="closeM('createM')" style="background:#666;margin-left:8px;">取消</button>
         <div id="cs" style="margin-top:12px;color:var(--o);"></div>
@@ -80,10 +86,10 @@
     <div class="box">
         <h3>加入群聊</h3>
         <input placeholder="群 ID" id="ji"><br>
-        <div id="jiInfo"></div><br>
+        <div id="jiInfo" style="margin:10px 0;color:#ff9100;"></div>
         <button class="btn" onclick="joinG()">加入</button>
-        <button class="btn" onclick="closeM('joinM')" style="background:#666;margin-left:8px;">取消</button>
-        <div id="js" style="margin-top:12px;color:var(--o);"></div>
+        <button class="btn" onclick="closeM('joinM')" style="background:#666;">取消</button>
+        <div id="js"></div>
     </div>
 </div>
 
@@ -93,8 +99,8 @@
         <h3>设置昵称 (仅一次)</h3>
         <input placeholder="昵称 (≤12字)" id="nn"><br>
         <button class="btn" onclick="setN()">保存</button>
-        <button class="btn" onclick="closeM('nickM')" style="background:#666;margin-left:8px;">取消</button>
-        <div id="ns" style="margin-top:12px;color:var(--o);"></div>
+        <button class="btn" onclick="closeM('nickM')" style="background:#666;">取消</button>
+        <div id="ns"></div>
     </div>
 </div>
 
@@ -117,14 +123,15 @@
         "event NicknameUpdated(address,string,bool)",
         "event VIPSet(address indexed,uint8)"
     ];
-    const GATE = {
-        chainId: "0x2748", // 10088
-        chainName: "GateLayer",
-        nativeCurrency: { name: "GT", symbol: "GT", decimals: 18 },
-        rpcUrls: ["https://gatelayer-mainnet.gatenode.cc/"],
-        blockExplorerUrls: ["https://www.gatescan.org/gatelayer"]
+    const TOKENS = {
+        "0xf6d9cf57e20ba0d33372e8998a9424aa53411e04": "GDOG",
+        "0x614025d5b75a1e762111d4b845633728774d888a": "MIMA",
+        "0xe6c3567e5687340f35437e0aa5b351f23d0069d5": "GING",
+        "0x284938c2a0ae7bdca8563270134850bfb51a9332": "GN",
+        "0x01ec580a60dbf3c8f3e00805c5489037eff35675": "GCAT"
     };
-    let p, s, c, a, g = null;
+    const GATE = { chainId: "0x2748", chainName: "GateLayer", nativeCurrency: { name: "GT", symbol: "GT", decimals: 18 }, rpcUrls: ["https://gatelayer-mainnet.gatenode.cc/"], blockExplorerUrls: ["https://www.gatescan.org/gatelayer"] };
+    let p, s, c, a, g = null, selectedToken = null;
 
     async function conn() {
         if (!window.ethereum) return alert("请安装 MetaMask");
@@ -132,7 +139,6 @@
         await p.send("eth_requestAccounts", []);
         s = await p.getSigner(); a = await s.getAddress();
         c = new ethers.Contract(ADDR, ABI, s);
-
         const n = await p.getNetwork();
         if (n.chainId !== 10088n) {
             try { await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: GATE.chainId }] });
@@ -140,16 +146,28 @@
         }
         document.getElementById("c").innerHTML = a.slice(0,6)+"..."+a.slice(-4);
         document.getElementById("s").innerText = "GateLayer 已连接";
-        loadG(); loadN(); events();
+        loadG(); loadN(); events(); highlightToken();
     }
+
+    function highlightToken() {
+        document.querySelectorAll(".token-btn").forEach(b => {
+            b.style.background = b.dataset.token === selectedToken ? "#e68a00" : "";
+        });
+        document.getElementById("curToken").innerText = selectedToken ? TOKENS[selectedToken] : "未选";
+    }
+
+    document.querySelectorAll(".token-btn").forEach(btn => {
+        btn.onclick = () => { selectedToken = btn.dataset.token; highlightToken(); };
+    });
 
     async function loadG() {
         const ids = await c.getUserJoinedGroups(a);
         const gl = document.getElementById("gl"); gl.innerHTML="";
         for (let id of ids) {
             const grp = await c.groups(id);
+            const sym = TOKENS[grp.paymentToken] || "GT";
             const div = document.createElement("div"); div.className="grp";
-            div.innerHTML = `<b>${grp.name}</b><br>成员:${grp.memberCount} | 费:${ethers.formatEther(grp.joinFee)} GT`;
+            div.innerHTML = `<b>${grp.name}</b><br>${grp.memberCount}人 | ${ethers.formatEther(grp.joinFee)} ${sym}`;
             div.onclick = () => selG(id);
             gl.appendChild(div);
         }
@@ -191,11 +209,12 @@
     }
 
     async function createG() {
-        const name = document.getElementById("gn").value;
+        if (!selectedToken) return alert("请先选择代币！");
+        const name = document.getElementById("gn").value.trim();
         const fee = document.getElementById("gf").value;
-        if (!name || !fee) return;
-        const tx = await c.createGroup(name, ethers.ZeroAddress, ethers.parseEther(fee));
+        if (!name || !fee) return alert("请填写完整");
         document.getElementById("cs").innerText = "创建中...";
+        const tx = await c.createGroup(name, selectedToken, ethers.parseEther(fee));
         await tx.wait();
         document.getElementById("cs").innerText = "创建成功！";
         loadG(); closeM("createM");
@@ -203,15 +222,22 @@
 
     async function joinG() {
         const id = document.getElementById("ji").value;
+        if (!id) return;
         const grp = await c.groups(id);
-        document.getElementById("jiInfo").innerText = `费用: ${ethers.formatEther(grp.joinFee)} GT`;
+        const sym = TOKENS[grp.paymentToken] || "GT";
+        document.getElementById("jiInfo").innerText = `费用: ${ethers.formatEther(grp.joinFee)} ${sym}`;
+        if (grp.paymentToken !== ethers.ZeroAddress) {
+            const erc20 = new ethers.Contract(grp.paymentToken, ["function approve(address,uint256) returns (bool)"], s);
+            await (await erc20.approve(ADDR, grp.joinFee)).wait();
+        }
         await c.joinGroup(id);
         document.getElementById("js").innerText = "加入成功！";
         loadG(); closeM("joinM");
     }
 
     async function setN() {
-        const n = document.getElementById("nn").value;
+        const n = document.getElementById("nn").value.trim();
+        if (!n) return;
         await c.setNickname(n);
         document.getElementById("ns").innerText = "昵称已设置！";
         loadN(); closeM("nickM");
